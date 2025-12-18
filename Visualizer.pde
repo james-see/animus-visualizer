@@ -84,8 +84,8 @@ public abstract class Visualizer {
     void retrieveSound() {
         beat.detect(input.mix);
         fft.forward(input.mix);
-        // Slider range: 1x to 200x amplification for more dramatic response
-        volumeScale = pow(10, sliderVal * 2.3);
+        // Slider range: 1x to 500x amplification for maximum dramatic response
+        volumeScale = pow(10, sliderVal * 2.7);
     }
 
     // calculates avg frame rate over TOTAL_SAMPLE_TIME. returns avg frame rate when done
