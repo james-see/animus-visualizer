@@ -207,6 +207,35 @@ EOF
         "$EXPORT_DIR/Animus.app" || echo "Signing failed, continuing unsigned"
     
     echo -e "${GREEN}✓ App signed${NC}"
+    
+    # Notarize the app (required for Gatekeeper)
+    if [ -n "$APPLE_ID" ] && [ -n "$TEAM_ID" ] && [ -n "$APP_PASSWORD" ]; then
+        echo ""
+        echo -e "${YELLOW}Notarizing app (this may take a few minutes)...${NC}"
+        
+        # Create zip for notarization
+        ditto -c -k --keepParent "$EXPORT_DIR/Animus.app" "/tmp/Animus-notarize.zip"
+        
+        # Submit for notarization
+        xcrun notarytool submit "/tmp/Animus-notarize.zip" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APP_PASSWORD" \
+            --wait
+        
+        if [ $? -eq 0 ]; then
+            # Staple the notarization ticket
+            xcrun stapler staple "$EXPORT_DIR/Animus.app"
+            echo -e "${GREEN}✓ App notarized and stapled${NC}"
+        else
+            echo -e "${YELLOW}⚠ Notarization failed, app will show Gatekeeper warning${NC}"
+        fi
+        
+        rm -f "/tmp/Animus-notarize.zip"
+    else
+        echo -e "${YELLOW}⚠ Missing APPLE_ID, TEAM_ID, or APP_PASSWORD in .env - skipping notarization${NC}"
+        echo "  App will show Gatekeeper warning when opened"
+    fi
 else
     echo "No DEVELOPER_ID in .env, skipping signing"
 fi
