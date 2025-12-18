@@ -20,9 +20,22 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
-      - name: Create source archive
+      - name: Check if release exists
+        id: check_release
         run: |
-          # Create a clean source distribution
+          if gh release view ${{ steps.version.outputs.VERSION }} &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release already exists (created by local release.sh)"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Only create release if it doesn't exist (backup for non-local releases)
+      - name: Create source archive
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
           mkdir -p dist
           zip -r dist/Animus-${{ steps.version.outputs.VERSION }}-source.zip \
             *.pde \
@@ -34,37 +47,29 @@ jobs:
             sketch.properties \
             -x "*.DS_Store"
       
-      - name: Generate release notes
-        id: notes
-        run: |
-          echo "## Animus Audio Visualizer ${{ steps.version.outputs.VERSION }}" > release_notes.md
-          echo "" >> release_notes.md
-          echo "### Installation" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "1. Download and install [Processing 4.3+](https://processing.org/download)" >> release_notes.md
-          echo "2. Install libraries: Sketch → Import Library → Manage Libraries → Search 'Minim' and 'ControlP5'" >> release_notes.md
-          echo "3. Download the source zip below and extract" >> release_notes.md
-          echo "4. Open \`Animus.pde\` in Processing and click Run" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### System Audio Setup (macOS)" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "To visualize Spotify, Apple Music, or other apps:" >> release_notes.md
-          echo "- Use [Loopback](https://rogueamoeba.com/loopback/) or [SoundSource](https://rogueamoeba.com/soundsource/) to route audio" >> release_notes.md
-          echo "- Set the virtual audio device as your system input in System Settings → Sound → Input" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### What's New" >> release_notes.md
-          echo "" >> release_notes.md
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD 2>/dev/null >> release_notes.md || echo "- Initial release" >> release_notes.md
-      
-      - name: Create GitHub Release
+      - name: Create GitHub Release (fallback)
+        if: steps.check_release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
           name: Animus ${{ steps.version.outputs.VERSION }}
-          body_path: release_notes.md
+          body: |
+            ## 🎵 Animus Audio Visualizer ${{ steps.version.outputs.VERSION }}
+
+            ### From Source
+            1. Download and install [Processing 4.3+](https://processing.org/download)
+            2. Install libraries: Sketch → Import Library → Manage Libraries → search 'Minim' and 'ControlP5'
+            3. Download the source zip below and extract
+            4. Open `Animus.pde` in Processing and click Run
+
+            ### 🔊 System Audio Setup (macOS)
+            To visualize Spotify, Apple Music, or other apps:
+            - Use [Loopback](https://rogueamoeba.com/loopback/) or [SoundSource](https://rogueamoeba.com/soundsource/) to route audio
+            - Set the virtual audio device as your system input in **System Settings → Sound → Input**
+
+            > **Note:** For pre-built macOS binary, use `./release.sh` locally (requires Apple Developer account for signing/notarization)
           draft: false
           prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
           files: |
             dist/Animus-${{ steps.version.outputs.VERSION }}-source.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

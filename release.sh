@@ -280,21 +280,24 @@ echo ""
 echo -e "${YELLOW}Step 6: Creating GitHub release${NC}"
 
 # Generate release notes
-NOTES="## Animus Audio Visualizer ${VERSION}
+NOTES="## 🎵 Animus Audio Visualizer ${VERSION}
 
-### Downloads
-- **macOS App**: Download \`Animus-${VERSION}-macos.zip\`, extract, and run
-- **Source**: Download source and open in Processing 4
+### macOS App (Recommended)
+1. Download \`Animus-${VERSION}-macos.zip\`
+2. Extract and double-click **Animus.app**
+3. Requires Java 17+ → \`brew install --cask temurin@17\`
 
-### Requirements
-- macOS 10.14+ (for macOS app)
-- Java 17+ runtime (install via \`brew install --cask temurin@17\`)
-- For source: Processing 4.3+, Minim, ControlP5 libraries
+### From Source
+For developers who want to modify the code:
+1. Download \`Animus-${VERSION}-source.zip\`
+2. Install [Processing 4.3+](https://processing.org/download)
+3. Install libraries: Sketch → Import Library → Manage Libraries → search 'Minim' and 'ControlP5'
+4. Open \`Animus.pde\` and click Run
 
-### System Audio
-To visualize Spotify/Apple Music:
-- Use Loopback or SoundSource to create a virtual audio device
-- Set it as your system input in System Settings → Sound → Input
+### 🔊 System Audio Setup (macOS)
+To visualize Spotify, Apple Music, or other apps:
+- Use [Loopback](https://rogueamoeba.com/loopback/) or [SoundSource](https://rogueamoeba.com/soundsource/) to route audio
+- Set the virtual audio device as your system input in **System Settings → Sound → Input**
 "
 
 gh release create "$VERSION" \
