@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+/* Google Fonts are loaded in Layout.astro head */
 
 :root {
   --bg-primary: #0a0a0f;
