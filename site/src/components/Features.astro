@@ -1,0 +1,190 @@
+---
+const features = [
+  {
+    title: "Vortex",
+    description: "Spiral visualization with rotating frequency bands that pulse and flow with your music.",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+  },
+  {
+    title: "Terrain",
+    description: "3D wave grid that transforms audio frequencies into a dynamic mountain landscape.",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`
+  },
+  {
+    title: "Droplet",
+    description: "Concentric rings that ripple outward with every beat, creating hypnotic patterns.",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`
+  }
+];
+
+const effects = [
+  { name: "Highlight", key: "1" },
+  { name: "Expand", key: "2" },
+  { name: "Revolve", key: "3" },
+  { name: "Particles", key: "4" },
+  { name: "Blur", key: "B" },
+  { name: "Invert", key: "I" }
+];
+---
+
+<section class="features" id="features">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="glow-text">Three Visualizers</span>
+    </h2>
+    <p class="section-subtitle">Each mode offers a unique perspective on your audio</p>
+    
+    <div class="feature-grid">
+      {features.map((feature) => (
+        <div class="feature-card">
+          <div class="feature-icon" set:html={feature.icon} />
+          <h3>{feature.title}</h3>
+          <p>{feature.description}</p>
+        </div>
+      ))}
+    </div>
+    
+    <div class="effects-section">
+      <h3>Visual Effects</h3>
+      <p>Layer effects to create your perfect visual experience</p>
+      <div class="effects-grid">
+        {effects.map((effect) => (
+          <div class="effect-pill">
+            <span class="effect-key">{effect.key}</span>
+            <span class="effect-name">{effect.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .features {
+    background: var(--bg-secondary);
+    position: relative;
+  }
+  
+  .features::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+  }
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .section-subtitle {
+    text-align: center;
+    margin-bottom: 4rem;
+    color: var(--text-secondary);
+  }
+  
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+  
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(168, 224, 99, 0.1);
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(168, 224, 99, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(86, 171, 47, 0.2), rgba(168, 224, 99, 0.1));
+    margin-bottom: 1.5rem;
+    color: var(--accent-green);
+  }
+  
+  .feature-card h3 {
+    font-family: var(--font-mono);
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+  }
+  
+  .feature-card p {
+    font-size: 1rem;
+    margin: 0 auto;
+  }
+  
+  .effects-section {
+    text-align: center;
+  }
+  
+  .effects-section h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+  
+  .effects-section > p {
+    margin: 0 auto 2rem;
+  }
+  
+  .effects-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .effect-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid rgba(168, 224, 99, 0.1);
+    border-radius: 100px;
+    transition: all 0.2s ease;
+  }
+  
+  .effect-pill:hover {
+    border-color: var(--accent-green);
+    background: rgba(168, 224, 99, 0.05);
+  }
+  
+  .effect-key {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    background: var(--accent-gradient);
+    color: var(--bg-primary);
+    border-radius: 4px;
+  }
+  
+  .effect-name {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 768px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,162 @@
+---
+---
+
+<section class="download" id="download">
+  <div class="container">
+    <div class="download-content">
+      <h2>
+        Ready to <span class="glow-text">visualize</span>?
+      </h2>
+      <p>Download Animus for macOS and transform your music into art.</p>
+      
+      <div class="download-buttons">
+        <a href="https://github.com/james-see/animus-visualizer/releases/latest" class="btn btn-primary btn-large">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download for macOS
+        </a>
+      </div>
+      
+      <div class="download-info">
+        <div class="info-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Signed & Notarized</span>
+        </div>
+        <div class="info-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span>macOS 10.14+</span>
+        </div>
+        <div class="info-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+          </svg>
+          <span>Open Source</span>
+        </div>
+      </div>
+      
+      <p class="source-note">
+        Or build from source: 
+        <a href="https://github.com/james-see/animus-visualizer">View on GitHub</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p>
+      Built with <a href="https://processing.org" target="_blank" rel="noopener">Processing</a>, 
+      <a href="http://code.compartmental.net/minim/" target="_blank" rel="noopener">Minim</a>, and 
+      <a href="http://www.sojamo.de/libraries/controlP5/" target="_blank" rel="noopener">ControlP5</a>
+    </p>
+    <p class="copyright">
+      Original by <a href="https://github.com/codygibb" target="_blank" rel="noopener">Cody Gibb</a> • 
+      Modernized by <a href="https://github.com/james-see" target="_blank" rel="noopener">James Campbell</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .download {
+    background: var(--bg-primary);
+    padding: 8rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 50% 100%, rgba(86, 171, 47, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .download-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .download h2 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: 1rem;
+  }
+  
+  .download > .container > .download-content > p {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+    max-width: none;
+  }
+  
+  .download-buttons {
+    margin-bottom: 2rem;
+  }
+  
+  .btn-large {
+    padding: 1.25rem 3rem;
+    font-size: 1.1rem;
+  }
+  
+  .download-info {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  
+  .info-item svg {
+    color: var(--accent-green);
+  }
+  
+  .source-note {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  
+  .footer {
+    background: var(--bg-secondary);
+    padding: 3rem 0;
+    text-align: center;
+    border-top: 1px solid rgba(168, 224, 99, 0.1);
+  }
+  
+  .footer p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: none;
+    margin: 0 auto 0.5rem;
+  }
+  
+  .copyright {
+    font-size: 0.8rem;
+  }
+  
+  @media (max-width: 768px) {
+    .download-info {
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+  }
+</style>

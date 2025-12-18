@@ -1,0 +1,194 @@
+---
+---
+
+<section class="setup" id="setup">
+  <div class="container">
+    <h2 class="section-title">
+      <span class="glow-text">System Audio Setup</span>
+    </h2>
+    <p class="section-subtitle">Visualize Spotify, Apple Music, or any app on macOS</p>
+    
+    <div class="setup-grid">
+      <div class="setup-card">
+        <div class="setup-number">1</div>
+        <h3>Get a Virtual Audio Device</h3>
+        <p>Use one of these tools to route audio:</p>
+        <div class="setup-links">
+          <a href="https://rogueamoeba.com/loopback/" target="_blank" rel="noopener">
+            Loopback <span class="badge">Recommended</span>
+          </a>
+          <a href="https://rogueamoeba.com/soundsource/" target="_blank" rel="noopener">
+            SoundSource
+          </a>
+          <a href="https://existential.audio/blackhole/" target="_blank" rel="noopener">
+            BlackHole <span class="badge free">Free</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="setup-card">
+        <div class="setup-number">2</div>
+        <h3>Set System Input</h3>
+        <p>Open System Settings and configure the virtual device:</p>
+        <div class="setup-path">
+          <code>System Settings → Sound → Input</code>
+        </div>
+        <p class="setup-note">Select your Loopback or BlackHole device as the input source</p>
+      </div>
+      
+      <div class="setup-card">
+        <div class="setup-number">3</div>
+        <h3>Launch Animus</h3>
+        <p>Start the visualizer and play some music. The audio will flow through!</p>
+        <div class="setup-tip">
+          <strong>Tip:</strong> Use the sensitivity slider to adjust visualization intensity
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .setup {
+    background: var(--bg-secondary);
+    position: relative;
+  }
+  
+  .setup::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+  }
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .section-subtitle {
+    text-align: center;
+    margin-bottom: 4rem;
+    color: var(--text-secondary);
+  }
+  
+  .setup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .setup-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(168, 224, 99, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+  }
+  
+  .setup-number {
+    position: absolute;
+    top: -1rem;
+    left: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--accent-gradient);
+    color: var(--bg-primary);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  
+  .setup-card h3 {
+    font-family: var(--font-mono);
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    padding-top: 0.5rem;
+  }
+  
+  .setup-card p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .setup-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .setup-links a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(168, 224, 99, 0.05);
+    border: 1px solid rgba(168, 224, 99, 0.2);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  
+  .setup-links a:hover {
+    background: rgba(168, 224, 99, 0.1);
+    border-color: var(--accent-green);
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--accent-gradient);
+    color: var(--bg-primary);
+    border-radius: 4px;
+    margin-left: auto;
+  }
+  
+  .badge.free {
+    background: linear-gradient(135deg, #4a90a4, #67b26f);
+  }
+  
+  .setup-path {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .setup-path code {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--accent-green);
+  }
+  
+  .setup-note {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  
+  .setup-tip {
+    background: rgba(168, 224, 99, 0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+  
+  .setup-tip strong {
+    color: var(--accent-green);
+  }
+  
+  @media (max-width: 768px) {
+    .setup-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
