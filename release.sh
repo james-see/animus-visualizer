@@ -5,7 +5,10 @@
 #
 # Usage: ./release.sh v2.1.0
 #
-# Requires: gh CLI (brew install gh)
+# Requires: 
+#   - gh CLI (brew install gh)
+#   - processing-java CLI (install from Processing: Tools > Install "processing-java")
+#   - Java 17 (brew install --cask temurin@17)
 
 set -e
 
@@ -41,8 +44,16 @@ if ! gh auth status &> /dev/null; then
     exit 1
 fi
 
+# Check for processing-java CLI
+if ! command -v processing-java &> /dev/null; then
+    echo -e "${RED}processing-java CLI not found.${NC}"
+    echo "Install from Processing IDE: Tools > Install \"processing-java\""
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/dist"
+TEMP_SKETCH="/tmp/Animus"
 
 echo -e "${BLUE}═══════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Animus Release: ${VERSION}${NC}"
@@ -53,32 +64,34 @@ echo ""
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-# Step 1: Export from Processing
-echo -e "${YELLOW}Step 1: Export macOS app from Processing${NC}"
+# Step 1: Prepare sketch (folder name must match main .pde file)
+echo -e "${YELLOW}Step 1: Preparing sketch for export${NC}"
+rm -rf "$TEMP_SKETCH"
+mkdir -p "$TEMP_SKETCH"
+cp "$SCRIPT_DIR"/*.pde "$TEMP_SKETCH/"
+cp -r "$SCRIPT_DIR/data" "$TEMP_SKETCH/"
+echo -e "${GREEN}✓ Sketch prepared${NC}"
+
+# Step 2: Export macOS app using CLI
 echo ""
-echo "Opening Processing... Please:"
-echo "  1. File → Export Application"
-echo "  2. Select macOS, check 'Embed Java for macOS'"
-echo "  3. Click Export"
-echo ""
+echo -e "${YELLOW}Step 2: Exporting macOS application${NC}"
+EXPORT_DIR="/tmp/Animus-export"
+rm -rf "$EXPORT_DIR"
 
-open -a Processing "$SCRIPT_DIR/Animus.pde"
+# Export without embedded Java (CLI bug workaround)
+# Users will need Java installed to run
+processing-java --sketch="$TEMP_SKETCH" --output="$EXPORT_DIR" --no-java --export
 
-read -p "Press Enter when export is complete..."
-
-# Find exported app
-EXPORT_DIR="$SCRIPT_DIR/application.macosx"
 if [ ! -d "$EXPORT_DIR/Animus.app" ]; then
-    echo -e "${RED}Export not found at $EXPORT_DIR/Animus.app${NC}"
-    echo "Make sure you exported for macOS"
+    echo -e "${RED}Export failed - Animus.app not found${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Found exported app${NC}"
+echo -e "${GREEN}✓ Application exported${NC}"
 
-# Step 2: Sign the app (optional)
+# Step 3: Sign the app (optional)
 echo ""
-echo -e "${YELLOW}Step 2: Code signing (optional)${NC}"
+echo -e "${YELLOW}Step 3: Code signing (optional)${NC}"
 
 if [ -f "$SCRIPT_DIR/.env" ]; then
     source "$SCRIPT_DIR/.env"
@@ -116,9 +129,9 @@ else
     echo "No DEVELOPER_ID in .env, skipping signing"
 fi
 
-# Step 3: Create archives
+# Step 4: Create archives
 echo ""
-echo -e "${YELLOW}Step 3: Creating release archives${NC}"
+echo -e "${YELLOW}Step 4: Creating release archives${NC}"
 
 # macOS app zip
 cd "$EXPORT_DIR"
@@ -135,12 +148,13 @@ zip -r "$BUILD_DIR/Animus-${VERSION}-source.zip" \
     build-macos.sh \
     env.example \
     sketch.properties \
+    release.sh \
     -x "*.DS_Store"
 echo -e "${GREEN}✓ Animus-${VERSION}-source.zip${NC}"
 
-# Step 4: Git tag
+# Step 5: Git tag
 echo ""
-echo -e "${YELLOW}Step 4: Creating git tag${NC}"
+echo -e "${YELLOW}Step 5: Creating git tag${NC}"
 
 git add -A
 git commit -m "Release ${VERSION}" --allow-empty
@@ -150,9 +164,9 @@ git push origin "$VERSION"
 
 echo -e "${GREEN}✓ Tag ${VERSION} pushed${NC}"
 
-# Step 5: Create GitHub release
+# Step 6: Create GitHub release
 echo ""
-echo -e "${YELLOW}Step 5: Creating GitHub release${NC}"
+echo -e "${YELLOW}Step 6: Creating GitHub release${NC}"
 
 # Generate release notes
 NOTES="## Animus Audio Visualizer ${VERSION}
@@ -163,6 +177,7 @@ NOTES="## Animus Audio Visualizer ${VERSION}
 
 ### Requirements
 - macOS 10.14+ (for macOS app)
+- Java 17+ runtime (install via \`brew install --cask temurin@17\`)
 - For source: Processing 4.3+, Minim, ControlP5 libraries
 
 ### System Audio
