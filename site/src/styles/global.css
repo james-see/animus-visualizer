@@ -35,6 +35,7 @@ body {
   min-height: 100vh;
 }
 
+/* Animated background gradient */
 body::before {
   content: '';
   position: fixed;
@@ -44,6 +45,29 @@ body::before {
     radial-gradient(ellipse at 80% 80%, rgba(168, 224, 99, 0.05) 0%, transparent 40%);
   pointer-events: none;
   z-index: -1;
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes bgShift {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Scanlines effect (subtle) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
 }
 
 h1, h2, h3, h4 {
@@ -75,11 +99,12 @@ p {
 a {
   color: var(--accent-green);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 a:hover {
   color: var(--accent-yellow);
+  text-shadow: 0 0 10px var(--glow-green);
 }
 
 .container {
@@ -93,6 +118,7 @@ section {
   padding: 6rem 0;
 }
 
+/* Button styles with animations */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -104,8 +130,18 @@ section {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn svg {
+  transition: transform 0.3s ease;
+}
+
+.btn:hover svg {
+  transform: scale(1.1);
 }
 
 .btn-primary {
@@ -115,9 +151,14 @@ section {
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px var(--glow-green);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 40px var(--glow-green), 0 0 60px rgba(168, 224, 99, 0.3);
   color: var(--bg-primary);
+  animation: jiggle 0.4s ease;
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-secondary {
@@ -127,8 +168,45 @@ section {
 }
 
 .btn-secondary:hover {
-  background: rgba(168, 224, 99, 0.1);
+  background: rgba(168, 224, 99, 0.15);
   color: var(--accent-green);
+  border-color: var(--accent-yellow);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 4px 20px rgba(168, 224, 99, 0.2);
+  animation: jiggle 0.4s ease;
+}
+
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes jiggle {
+  0%, 100% { transform: translateY(-3px) scale(1.02) rotate(0deg); }
+  20% { transform: translateY(-3px) scale(1.02) rotate(-1deg); }
+  40% { transform: translateY(-3px) scale(1.02) rotate(1deg); }
+  60% { transform: translateY(-3px) scale(1.02) rotate(-0.5deg); }
+  80% { transform: translateY(-3px) scale(1.02) rotate(0.5deg); }
+}
+
+/* Shimmer effect on buttons */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .glow-text {
@@ -136,8 +214,15 @@ section {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: textGlow 3s ease-in-out infinite alternate;
 }
 
+@keyframes textGlow {
+  0% { filter: drop-shadow(0 0 20px var(--glow-green)); }
+  100% { filter: drop-shadow(0 0 40px var(--glow-yellow)); }
+}
+
+/* Fade in animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -149,20 +234,51 @@ section {
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
     opacity: 1;
+    transform: scale(1);
   }
-  50% {
-    opacity: 0.6;
-  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .animate-fade-in {
   animation: fadeInUp 0.8s ease forwards;
 }
 
-.animate-delay-1 { animation-delay: 0.1s; }
-.animate-delay-2 { animation-delay: 0.2s; }
-.animate-delay-3 { animation-delay: 0.3s; }
-.animate-delay-4 { animation-delay: 0.4s; }
+.animate-delay-1 { animation-delay: 0.15s; }
+.animate-delay-2 { animation-delay: 0.3s; }
+.animate-delay-3 { animation-delay: 0.45s; }
+.animate-delay-4 { animation-delay: 0.6s; }
+
+/* Card hover effects */
+.feature-card,
+.setup-card,
+.gallery-item {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.feature-card:hover,
+.setup-card:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+/* Smooth scroll reveal */
+@media (prefers-reduced-motion: no-preference) {
+  section {
+    animation: fadeInScale 0.8s ease forwards;
+  }
+}
