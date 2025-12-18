@@ -158,6 +158,19 @@ fi
 
 echo -e "${GREEN}✓ Application exported${NC}"
 
+# Add app icon if sketch.icns exists
+if [ -f "$SCRIPT_DIR/sketch.icns" ]; then
+    echo -e "${YELLOW}Adding app icon...${NC}"
+    mkdir -p "$EXPORT_DIR/Animus.app/Contents/Resources"
+    cp "$SCRIPT_DIR/sketch.icns" "$EXPORT_DIR/Animus.app/Contents/Resources/sketch.icns"
+    
+    # Update Info.plist to reference the icon
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string sketch.icns" "$EXPORT_DIR/Animus.app/Contents/Info.plist" 2>/dev/null || \
+    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile sketch.icns" "$EXPORT_DIR/Animus.app/Contents/Info.plist"
+    
+    echo -e "${GREEN}✓ App icon added${NC}"
+fi
+
 # Step 3: Sign the app (optional)
 echo ""
 echo -e "${YELLOW}Step 3: Code signing (optional)${NC}"
