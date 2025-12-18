@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Create source archive
+        run: |
+          # Create a clean source distribution
+          mkdir -p dist
+          zip -r dist/Animus-${{ steps.version.outputs.VERSION }}-source.zip \
+            *.pde \
+            data/ \
+            README.md \
+            build.sh \
+            build-macos.sh \
+            env.example \
+            sketch.properties \
+            -x "*.DS_Store"
+      
+      - name: Generate release notes
+        id: notes
+        run: |
+          echo "## Animus Audio Visualizer ${{ steps.version.outputs.VERSION }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "1. Download and install [Processing 4.3+](https://processing.org/download)" >> release_notes.md
+          echo "2. Install libraries: Sketch → Import Library → Manage Libraries → Search 'Minim' and 'ControlP5'" >> release_notes.md
+          echo "3. Download the source zip below and extract" >> release_notes.md
+          echo "4. Open \`Animus.pde\` in Processing and click Run" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### System Audio Setup (macOS)" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "To visualize Spotify, Apple Music, or other apps:" >> release_notes.md
+          echo "- Use [Loopback](https://rogueamoeba.com/loopback/) or [SoundSource](https://rogueamoeba.com/soundsource/) to route audio" >> release_notes.md
+          echo "- Set the virtual audio device as your system input in System Settings → Sound → Input" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### What's New" >> release_notes.md
+          echo "" >> release_notes.md
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD 2>/dev/null >> release_notes.md || echo "- Initial release" >> release_notes.md
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Animus ${{ steps.version.outputs.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
+          files: |
+            dist/Animus-${{ steps.version.outputs.VERSION }}-source.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Optional: Build macOS app (requires Processing CLI)
+  build-macos:
+    runs-on: macos-latest
+    needs: release
+    if: false  # Disabled by default - enable when you want automated builds
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Processing
+        run: |
+          brew install --cask processing
+      
+      - name: Install libraries
+        run: |
+          mkdir -p ~/Documents/Processing/libraries
+          # Install Minim
+          curl -sL -o /tmp/minim.zip "http://code.compartmental.net/minim/distro/minim_for_processing.zip"
+          unzip -q /tmp/minim.zip -d ~/Documents/Processing/libraries/
+          # Install ControlP5
+          curl -sL -o /tmp/controlP5.zip "http://www.sojamo.de/libraries/controlP5/controlP5.zip"
+          unzip -q /tmp/controlP5.zip -d ~/Documents/Processing/libraries/
+      
+      - name: Build macOS app
+        run: |
+          # Processing CLI export (if available)
+          /Applications/Processing.app/Contents/MacOS/processing-java \
+            --sketch="$(pwd)" \
+            --output="build/macos" \
+            --platform=macosx \
+            --export || echo "CLI export not available"
+      
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Upload macOS build
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/macos/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
