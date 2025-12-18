@@ -2,6 +2,15 @@
 
 A real-time audio visualizer built with Processing 4 featuring multiple visualization modes that respond to audio input from microphone or system audio (via virtual audio devices like SoundSource/Loopback).
 
+<p align="center">
+  <img src="assets/examples/example1.png" width="400" alt="Vortex Mode"/>
+  <img src="assets/examples/example2.png" width="400" alt="Droplet Mode"/>
+</p>
+<p align="center">
+  <img src="assets/examples/example3.png" width="400" alt="Terrain Mode"/>
+  <img src="assets/examples/example4.png" width="400" alt="Particle Mode"/>
+</p>
+
 ## Features
 
 - **3 Visualization Modes:**
@@ -67,6 +76,10 @@ To visualize system audio from Spotify, Apple Music, or other apps:
 4. In Animus, select BlackHole as input
 
 ## Controls
+
+<p align="center">
+  <img src="assets/examples/interface-example.png" width="800" alt="Animus Interface"/>
+</p>
 
 ### Keyboard Shortcuts
 | Key | Action |
