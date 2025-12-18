@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Animus Pre-Push Hook
+# Builds macOS app when pushing a version tag (v*)
+# 
+# Setup: git config core.hooksPath .githooks
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Check if we're pushing a tag
+while read local_ref local_sha remote_ref remote_sha; do
+    if [[ "$local_ref" == refs/tags/v* ]]; then
+        TAG_NAME="${local_ref#refs/tags/}"
+        echo -e "${BLUE}═══════════════════════════════════════════${NC}"
+        echo -e "${BLUE}  Detected version tag: ${TAG_NAME}${NC}"
+        echo -e "${BLUE}  Building macOS app before push...${NC}"
+        echo -e "${BLUE}═══════════════════════════════════════════${NC}"
+        echo ""
+        
+        # Get script directory
+        SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+        BUILD_DIR="$SCRIPT_DIR/dist"
+        
+        # Create dist directory
+        mkdir -p "$BUILD_DIR"
+        
+        # Check if Processing is installed
+        if [ ! -d "/Applications/Processing.app" ]; then
+            echo -e "${RED}Processing.app not found!${NC}"
+            echo "Please install Processing 4 first."
+            exit 1
+        fi
+        
+        echo -e "${YELLOW}Step 1: Opening Processing to export app...${NC}"
+        echo "Please export the application manually:"
+        echo "  1. Processing will open with Animus.pde"
+        echo "  2. Go to File → Export Application"
+        echo "  3. Check 'macOS' and 'Embed Java'"
+        echo "  4. Click Export"
+        echo ""
+        
+        # Open Processing with the sketch
+        open -a Processing "$SCRIPT_DIR/Animus.pde"
+        
+        echo -e "${YELLOW}Waiting for you to export... Press Enter when done.${NC}"
+        read -r
+        
+        # Look for exported app
+        EXPORT_DIR="$SCRIPT_DIR/application.macosx"
+        if [ -d "$EXPORT_DIR/Animus.app" ]; then
+            echo -e "${GREEN}✓ Found exported app${NC}"
+            
+            # Create zip
+            echo -e "${YELLOW}Step 2: Creating release archive...${NC}"
+            cd "$EXPORT_DIR"
+            zip -r "$BUILD_DIR/Animus-${TAG_NAME}-macos.zip" Animus.app
+            
+            echo -e "${GREEN}✓ Created: dist/Animus-${TAG_NAME}-macos.zip${NC}"
+            
+            # Also create source zip
+            echo -e "${YELLOW}Step 3: Creating source archive...${NC}"
+            cd "$SCRIPT_DIR"
+            zip -r "$BUILD_DIR/Animus-${TAG_NAME}-source.zip" \
+                *.pde \
+                data/ \
+                README.md \
+                build.sh \
+                build-macos.sh \
+                env.example \
+                sketch.properties \
+                -x "*.DS_Store"
+            
+            echo -e "${GREEN}✓ Created: dist/Animus-${TAG_NAME}-source.zip${NC}"
+            
+            echo ""
+            echo -e "${GREEN}═══════════════════════════════════════════${NC}"
+            echo -e "${GREEN}  Build complete! Archives ready in dist/${NC}"
+            echo -e "${GREEN}═══════════════════════════════════════════${NC}"
+            echo ""
+            echo "After push, upload these to the GitHub release:"
+            echo "  - dist/Animus-${TAG_NAME}-macos.zip"
+            echo "  - dist/Animus-${TAG_NAME}-source.zip"
+            echo ""
+            
+        else
+            echo -e "${YELLOW}No exported app found at $EXPORT_DIR${NC}"
+            echo "Continuing without macOS build..."
+        fi
+    fi
+done
+
+exit 0
