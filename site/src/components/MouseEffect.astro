@@ -43,7 +43,8 @@
   
   function drawTrail() {
     // Fade effect - don't fully clear, leave ghost
-    ctx.fillStyle = 'rgba(10, 10, 15, 0.15)';
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(10, 10, 15, 0.05)';
     ctx.fillRect(0, 0, width, height);
     
     if (trail.length < 2) return;
