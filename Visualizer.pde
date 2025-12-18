@@ -4,7 +4,7 @@ import java.io.*;
 import ddf.minim.analysis.*;
 
 public abstract class Visualizer {
-    final int TEXT_OFFSET = displayWidth - 200;
+    int TEXT_OFFSET;
     final int TEXT_SEPARATION = 15;
     final int TEXT_SIZE = 14;
     final float TOTAL_SAMPLE_TIME = 1000;
@@ -69,6 +69,7 @@ public abstract class Visualizer {
     void setup() {}
     
     Visualizer(AudioInput input, String name) {
+        TEXT_OFFSET = width - 200;
         frontView = true;
         this.input = input;
         src = (AudioSource)input;

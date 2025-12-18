@@ -1,6 +1,10 @@
 import ddf.minim.*;
+import ddf.minim.analysis.*;
 import controlP5.*;
 import java.util.*;
+import java.io.File;
+import javax.sound.sampled.*;
+import processing.data.JSONObject;
 
 final float PHI = (1.0 + sqrt(5.0)) / 2.0;
 final int FONT_SIZE = 14;
@@ -36,8 +40,19 @@ float interfaceT;
 int contrast;
 PImage cam, modeBackground;
 
+// Audio device selection
+ArrayList<String> audioDeviceNames;
+ArrayList<Mixer.Info> audioDeviceMixers;
+int selectedDeviceIndex = 0;
+String selectedDeviceName = "";
+ScrollableList deviceDropdown;
+Textlabel deviceLabel;
+
+void settings() {
+    fullScreen(P3D);
+}
+
 void setup() {
-    size(displayWidth, displayHeight, P3D);
     minim = new Minim(this); 
     spriteShader = loadShader("spritefrag.glsl", "spritevert.glsl");
     sprite = loadImage("sprite.png");
@@ -49,10 +64,19 @@ void setup() {
     PFont pfont = createFont("Andale Mono.ttf", FONT_SIZE, true);
     ControlFont cFont = new ControlFont(pfont, FONT_SIZE);
     textFont(pfont);
-    // showInterface = true;
+    
+    // Enumerate audio devices
+    enumerateAudioDevices();
+    
+    // Load saved configuration
+    loadConfig();
+    
     Visualizer ring, fluid, droplet;
     logo = loadImage("Logo.png");
-    AudioInput input = minim.getLineIn(Minim.STEREO, 512);
+    
+    // Initialize audio input with default or saved device
+    initAudioInput();
+    
     cam = loadImage("Camera.png");
     modeBackground = loadImage("ModeSelector.png");
     ring = new Ring(input);
@@ -74,6 +98,15 @@ void setup() {
     buttonLabels = new Textlabel[14];
     cp5 = new ControlP5(this);
     guiSetup(cFont);
+    
+    // Apply loaded settings
+    if (volumeBar != null && sliderVal > 0) {
+        volumeBar.value = sliderVal;
+    }
+    if (deviceDropdown != null) {
+        deviceDropdown.setValue(selectedDeviceIndex);
+    }
+    
     visualizers[select].setup();
     background(0);
 }
@@ -270,6 +303,27 @@ void guiSetup(ControlFont font){
             .setFont(font)
             .setPosition(width - 230-15, TEXT_OFFSET);
     interfaceLabel.getCaptionLabel().setSize(FONT_SIZE);
+    
+    // Audio device selector dropdown
+    deviceLabel = cp5.addTextlabel("deviceLabel")
+            .setText("Audio Input:")
+            .setFont(font)
+            .setPosition(TEXT_OFFSET, TEXT_OFFSET);
+    
+    deviceDropdown = cp5.addScrollableList("deviceSelector")
+            .setPosition(TEXT_OFFSET, TEXT_OFFSET + 20)
+            .setSize(250, 200)
+            .setBarHeight(25)
+            .setItemHeight(25)
+            .setFont(font)
+            .setType(ScrollableList.DROPDOWN)
+            .close();
+    
+    // Populate dropdown with audio devices
+    for (int i = 0; i < audioDeviceNames.size(); i++) {
+        deviceDropdown.addItem(audioDeviceNames.get(i), i);
+    }
+    deviceDropdown.setValue(selectedDeviceIndex);
 
     buttons[0] = highlight = cp5.addCheckBox("highlight").addItem("highlight [1]", 0);
     buttonLabels[0] = cp5.addTextlabel("highlightT").setText("Highlight [1]");
@@ -334,7 +388,7 @@ void guiSetup(ControlFont font){
     buttonLabels[8].setPosition(width - (180 - 28), startHeight + 257);
     buttonLabels[11].setPosition(width - (212 - 58), startHeight - 20);
     buttonLabels[12].setPosition(width - (212 - 12), startHeight + 26);
-    buttonLabels[13].setPosition(displayWidth / 2 - 25, TEXT_OFFSET);
+    buttonLabels[13].setPosition(width / 2 - 25, TEXT_OFFSET);
     setGuiColors();
 }
 
@@ -342,16 +396,29 @@ void setGuiColors() {
     interfaceT = visualizers[select].bindRange(interfaceT, 0.0, 255.0);
     int textColor = (int) abs(visualizers[select].contrast - interfaceT);
     buttonLabels[13].setText(visualizers[select].name);
-    buttonLabels[13].setPosition(displayWidth / 2 - 25, TEXT_OFFSET);
+    buttonLabels[13].setPosition(width / 2 - 25, TEXT_OFFSET);
     for(int i = 0; i < buttonLabels.length; i++) {
         // buttonLabels[i].setColor(color(255 - visualizers[select].contrast));
         if (i < 4 || i > 7) {// don't reverse camera keys
             buttonLabels[i].setColor(textColor);
         }
     }
-    // interfaceLabel.setColor(color(255 - visualizers[select].contrast));
-    // println("orig: " + (255 - visualizers[select].contrast) + ", interfaceT: " + interfaceT);
     interfaceLabel.setColor(textColor);
+    
+    // Update audio device selector colors
+    if (deviceLabel != null) {
+        deviceLabel.setColor(textColor);
+    }
+    if (deviceDropdown != null) {
+        int bgColor = visualizers[select].contrast == 255 ? color(40) : color(220);
+        int fgColor = visualizers[select].contrast == 255 ? color(220) : color(40);
+        deviceDropdown.setColorBackground(bgColor)
+                      .setColorForeground(color(100, 100, 255))
+                      .setColorActive(color(80, 80, 200))
+                      .setColorCaptionLabel(fgColor)
+                      .setColorValueLabel(fgColor);
+    }
+    
     volumeBar.invert = visualizers[select].contrast == 255 ? true: false;
 }
 
@@ -501,10 +568,160 @@ void setInterfaceVisibility(boolean val) {
         buttonLabels[i].setVisible(val);
     }
     interfaceLabel.setVisible(val);
+    if (deviceLabel != null) {
+        deviceLabel.setVisible(val);
+    }
+    if (deviceDropdown != null) {
+        deviceDropdown.setVisible(val);
+    }
 }
 
-void stop() {
-    input.close();
-    minim.stop();
-    super.stop();
+void dispose() {
+    if (input != null) {
+        input.close();
+    }
+    if (minim != null) {
+        minim.stop();
+    }
+}
+
+// Enumerate available audio input devices
+void enumerateAudioDevices() {
+    audioDeviceNames = new ArrayList<String>();
+    audioDeviceMixers = new ArrayList<Mixer.Info>();
+    
+    // Add default option first
+    audioDeviceNames.add("System Default");
+    audioDeviceMixers.add(null);
+    
+    Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+    
+    for (Mixer.Info info : mixerInfos) {
+        Mixer mixer = AudioSystem.getMixer(info);
+        Line.Info[] targetLines = mixer.getTargetLineInfo();
+        
+        // Check if this mixer supports audio input (TargetDataLine)
+        for (Line.Info lineInfo : targetLines) {
+            if (lineInfo.getLineClass() == TargetDataLine.class) {
+                String deviceName = info.getName();
+                // Filter out some system/internal devices on macOS
+                if (!deviceName.toLowerCase().contains("port") && 
+                    !deviceName.toLowerCase().equals("default")) {
+                    audioDeviceNames.add(deviceName);
+                    audioDeviceMixers.add(info);
+                }
+                break;
+            }
+        }
+    }
+    
+    println("Found " + audioDeviceNames.size() + " audio input devices:");
+    for (int i = 0; i < audioDeviceNames.size(); i++) {
+        println("  [" + i + "] " + audioDeviceNames.get(i));
+    }
+}
+
+// Initialize audio input with selected device
+void initAudioInput() {
+    if (input != null) {
+        input.close();
+    }
+    
+    try {
+        if (selectedDeviceIndex == 0 || audioDeviceMixers.get(selectedDeviceIndex) == null) {
+            // Use system default
+            input = minim.getLineIn(Minim.STEREO, 512);
+            selectedDeviceName = "System Default";
+        } else {
+            // Use specific device - Minim doesn't directly support device selection,
+            // so we use the default input but the user should configure their system
+            // audio routing via SoundSource/Loopback to route to the default input
+            input = minim.getLineIn(Minim.STEREO, 512);
+            selectedDeviceName = audioDeviceNames.get(selectedDeviceIndex);
+        }
+        println("Audio input initialized: " + selectedDeviceName);
+    } catch (Exception e) {
+        println("Error initializing audio: " + e.getMessage());
+        // Fallback to default
+        input = minim.getLineIn(Minim.STEREO, 512);
+        selectedDeviceName = "System Default (fallback)";
+    }
+}
+
+// Handle audio device selection from dropdown
+void deviceSelector(int index) {
+    if (index >= 0 && index < audioDeviceNames.size()) {
+        selectedDeviceIndex = index;
+        selectedDeviceName = audioDeviceNames.get(index);
+        println("Selected audio device: " + selectedDeviceName);
+        
+        // Reinitialize audio and visualizers
+        initAudioInput();
+        
+        // Update visualizers with new input
+        for (int i = 0; i < visualizers.length; i++) {
+            visualizers[i].input = input;
+            visualizers[i].src = (AudioSource)input;
+            visualizers[i].fft = new FFT(input.bufferSize(), input.sampleRate());
+            visualizers[i].beat = new BeatDetect(input.bufferSize(), input.sampleRate());
+            visualizers[i].beat.setSensitivity(300);
+        }
+        
+        // Save preference
+        saveConfig();
+    }
+}
+
+// Configuration file path
+String configPath = "config.json";
+
+// Save configuration to JSON file
+void saveConfig() {
+    JSONObject config = new JSONObject();
+    config.setString("audioDevice", selectedDeviceName);
+    config.setInt("audioDeviceIndex", selectedDeviceIndex);
+    config.setFloat("volumeSensitivity", sliderVal);
+    config.setInt("lastVisualizer", select);
+    
+    saveJSONObject(config, dataPath(configPath));
+    println("Configuration saved to " + dataPath(configPath));
+}
+
+// Load configuration from JSON file
+void loadConfig() {
+    try {
+        File configFile = new File(dataPath(configPath));
+        if (configFile.exists()) {
+            JSONObject config = loadJSONObject(dataPath(configPath));
+            
+            // Load audio device preference
+            String savedDeviceName = config.getString("audioDevice", "System Default");
+            selectedDeviceIndex = config.getInt("audioDeviceIndex", 0);
+            
+            // Try to find the saved device in current device list
+            boolean deviceFound = false;
+            for (int i = 0; i < audioDeviceNames.size(); i++) {
+                if (audioDeviceNames.get(i).equals(savedDeviceName)) {
+                    selectedDeviceIndex = i;
+                    deviceFound = true;
+                    break;
+                }
+            }
+            
+            if (!deviceFound) {
+                println("Saved audio device '" + savedDeviceName + "' not found, using default");
+                selectedDeviceIndex = 0;
+            }
+            
+            // Load other settings
+            sliderVal = config.getFloat("volumeSensitivity", 0.5);
+            select = config.getInt("lastVisualizer", 0);
+            
+            println("Configuration loaded from " + dataPath(configPath));
+        } else {
+            println("No config file found, using defaults");
+        }
+    } catch (Exception e) {
+        println("Error loading config: " + e.getMessage());
+    }
 }

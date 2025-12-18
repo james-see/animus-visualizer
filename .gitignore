@@ -1,0 +1,29 @@
+# Build outputs
+build/
+*.dmg
+*.zip
+
+# macOS
+.DS_Store
+*.app/
+
+# User configuration (contains audio device preferences)
+data/config.json
+
+# Environment files with credentials
+.env
+
+# Processing generated
+applet/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Old application exports (keep for reference but don't track)
+# application.macosx/
+# application.windows32/
+# application.windows64/
+# application.linux32/
+# application.linux64/
