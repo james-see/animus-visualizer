@@ -3,7 +3,8 @@
 # Animus Release Script
 # Builds app, creates tag, pushes, and uploads to GitHub Release
 #
-# Usage: ./release.sh v2.1.0
+# Usage: ./release.sh [version]
+#   If no version provided, auto-detects and suggests next version
 #
 # Requires: 
 #   - gh CLI (brew install gh)
@@ -17,19 +18,87 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
+
+# Function to get latest version tag
+get_latest_version() {
+    git fetch --tags 2>/dev/null
+    git tag -l 'v*' | sort -V | tail -1
+}
+
+# Function to increment version
+increment_version() {
+    local version=$1
+    local part=${2:-patch}  # major, minor, or patch (default)
+    
+    # Remove 'v' prefix
+    version="${version#v}"
+    
+    IFS='.' read -r major minor patch <<< "$version"
+    
+    case $part in
+        major) ((major++)); minor=0; patch=0 ;;
+        minor) ((minor++)); patch=0 ;;
+        patch) ((patch++)) ;;
+    esac
+    
+    echo "v${major}.${minor}.${patch}"
+}
 
 VERSION="$1"
 
+# Auto-detect version if not provided
 if [ -z "$VERSION" ]; then
-    echo "Usage: $0 <version>"
-    echo "Example: $0 v2.1.0"
-    exit 1
+    LATEST=$(get_latest_version)
+    
+    if [ -z "$LATEST" ]; then
+        SUGGESTED="v1.0.0"
+    else
+        SUGGESTED=$(increment_version "$LATEST" patch)
+    fi
+    
+    echo -e "${BLUE}═══════════════════════════════════════════${NC}"
+    echo -e "${BLUE}  Animus Release Tool${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "Current version: ${CYAN}${LATEST:-none}${NC}"
+    echo -e "Suggested next:  ${GREEN}${SUGGESTED}${NC}"
+    echo ""
+    echo -e "Version options:"
+    echo -e "  ${CYAN}1${NC}) Patch release: $(increment_version "$LATEST" patch)"
+    echo -e "  ${CYAN}2${NC}) Minor release: $(increment_version "$LATEST" minor)"
+    echo -e "  ${CYAN}3${NC}) Major release: $(increment_version "$LATEST" major)"
+    echo -e "  ${CYAN}4${NC}) Custom version"
+    echo ""
+    read -p "Select option [1-4] or press Enter for patch: " choice
+    
+    case $choice in
+        1|"") VERSION=$(increment_version "$LATEST" patch) ;;
+        2) VERSION=$(increment_version "$LATEST" minor) ;;
+        3) VERSION=$(increment_version "$LATEST" major) ;;
+        4) 
+            read -p "Enter version (e.g., v2.1.0): " VERSION
+            ;;
+        *) 
+            echo -e "${RED}Invalid choice${NC}"
+            exit 1
+            ;;
+    esac
 fi
 
 if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
     echo -e "${RED}Version must start with 'v' and be semver (e.g., v2.1.0)${NC}"
     exit 1
+fi
+
+# Confirm
+echo ""
+echo -e "Will release: ${GREEN}${VERSION}${NC}"
+read -p "Continue? [Y/n] " confirm
+if [[ "$confirm" =~ ^[Nn] ]]; then
+    echo "Aborted."
+    exit 0
 fi
 
 # Check for gh CLI
