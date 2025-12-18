@@ -49,7 +49,7 @@ install_prerequisites() {
         echo -e "${YELLOW}Installing Homebrew...${NC}"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     else
-        echo -e "${GREEN}✓ Homebrew installed${NC}"
+        echo -e "${GREEN}✓ Homebrew${NC}"
     fi
     
     # Install Processing
@@ -57,39 +57,74 @@ install_prerequisites() {
         echo -e "${YELLOW}Installing Processing 4...${NC}"
         brew install --cask processing
     else
-        echo -e "${GREEN}✓ Processing installed${NC}"
+        echo -e "${GREEN}✓ Processing${NC}"
     fi
     
     # Create libraries directory if needed
     mkdir -p "$PROCESSING_LIBS"
     
-    # Install Minim library
+    # Install Minim library (official URL from Processing contribution manager)
     if [ ! -d "$PROCESSING_LIBS/minim" ]; then
         echo -e "${YELLOW}Installing Minim library...${NC}"
-        cd /tmp
-        curl -L -o minim.zip "https://github.com/ddf/Minim/releases/download/v2.2.2/minim-2.2.2.zip"
-        unzip -q minim.zip -d "$PROCESSING_LIBS/"
-        rm minim.zip
-        echo -e "${GREEN}✓ Minim installed${NC}"
+        install_processing_library "minim" "http://code.compartmental.net/minim/distro/minim_for_processing.zip"
     else
-        echo -e "${GREEN}✓ Minim library installed${NC}"
+        echo -e "${GREEN}✓ Minim${NC}"
     fi
     
-    # Install ControlP5 library
+    # Install ControlP5 library (official URL from Processing contribution manager)
     if [ ! -d "$PROCESSING_LIBS/controlP5" ]; then
         echo -e "${YELLOW}Installing ControlP5 library...${NC}"
-        cd /tmp
-        curl -L -o controlP5.zip "https://github.com/sojamo/controlp5/releases/download/v2.2.6/controlP5-2.2.6.zip"
-        unzip -q controlP5.zip -d "$PROCESSING_LIBS/"
-        rm controlP5.zip
-        echo -e "${GREEN}✓ ControlP5 installed${NC}"
+        install_processing_library "controlP5" "http://www.sojamo.de/libraries/controlP5/controlP5.zip"
     else
-        echo -e "${GREEN}✓ ControlP5 library installed${NC}"
+        echo -e "${GREEN}✓ ControlP5${NC}"
     fi
     
     echo ""
     echo -e "${GREEN}All prerequisites installed!${NC}"
     echo ""
+}
+
+# Helper function to download and install a Processing library
+install_processing_library() {
+    local lib_name=$1
+    local url=$2
+    local temp_dir=$(mktemp -d)
+    local zip_file="$temp_dir/$lib_name.zip"
+    
+    # Try primary URL first, then fallback to GitHub
+    if ! curl -fsSL -o "$zip_file" "$url" 2>/dev/null; then
+        echo -e "${YELLOW}  Primary URL failed, trying alternative...${NC}"
+        # Fallback URLs
+        case "$lib_name" in
+            minim)
+                url="https://github.com/ddf/Minim/releases/latest/download/minim.zip"
+                ;;
+            controlP5)
+                url="https://github.com/sojamo/controlp5/releases/latest/download/controlP5.zip"
+                ;;
+        esac
+        
+        if ! curl -fsSL -o "$zip_file" "$url" 2>/dev/null; then
+            echo -e "${RED}  Failed to download $lib_name${NC}"
+            echo -e "${YELLOW}  Please install manually: Processing → Sketch → Import Library → Manage Libraries → Search '$lib_name'${NC}"
+            rm -rf "$temp_dir"
+            return 1
+        fi
+    fi
+    
+    # Verify it's a valid zip
+    if ! unzip -t "$zip_file" &>/dev/null; then
+        echo -e "${RED}  Downloaded file is not a valid zip${NC}"
+        echo -e "${YELLOW}  Please install manually: Processing → Sketch → Import Library → Manage Libraries → Search '$lib_name'${NC}"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    # Extract to Processing libraries folder
+    unzip -q "$zip_file" -d "$PROCESSING_LIBS/"
+    rm -rf "$temp_dir"
+    
+    echo -e "${GREEN}  ✓ $lib_name installed${NC}"
 }
 
 # Check for required environment variables

@@ -168,26 +168,38 @@ install_processing_libs() {
     
     mkdir -p "$PROCESSING_LIBS"
     
-    # Install Minim
+    # Install Minim (official URL from Processing contribution manager)
     if [ ! -d "$PROCESSING_LIBS/minim" ]; then
         echo -e "${YELLOW}Installing Minim...${NC}"
-        curl -sL -o /tmp/minim.zip "https://github.com/ddf/Minim/releases/download/v2.2.2/minim-2.2.2.zip"
-        unzip -q /tmp/minim.zip -d "$PROCESSING_LIBS/"
-        rm /tmp/minim.zip
-        echo -e "${GREEN}✓ Minim installed${NC}"
+        install_lib "minim" "http://code.compartmental.net/minim/distro/minim_for_processing.zip"
     else
         echo -e "${GREEN}✓ Minim${NC}"
     fi
     
-    # Install ControlP5
+    # Install ControlP5 (official URL from Processing contribution manager)
     if [ ! -d "$PROCESSING_LIBS/controlP5" ]; then
         echo -e "${YELLOW}Installing ControlP5...${NC}"
-        curl -sL -o /tmp/controlP5.zip "https://github.com/sojamo/controlp5/releases/download/v2.2.6/controlP5-2.2.6.zip"
-        unzip -q /tmp/controlP5.zip -d "$PROCESSING_LIBS/"
-        rm /tmp/controlP5.zip
-        echo -e "${GREEN}✓ ControlP5 installed${NC}"
+        install_lib "controlP5" "http://www.sojamo.de/libraries/controlP5/controlP5.zip"
     else
         echo -e "${GREEN}✓ ControlP5${NC}"
+    fi
+}
+
+# Helper to download and install a library with fallbacks
+install_lib() {
+    local name=$1
+    local url=$2
+    local tmp="/tmp/${name}.zip"
+    
+    # Try download
+    if curl -fsSL -o "$tmp" "$url" 2>/dev/null && unzip -t "$tmp" &>/dev/null; then
+        unzip -q "$tmp" -d "$PROCESSING_LIBS/"
+        rm -f "$tmp"
+        echo -e "${GREEN}  ✓ $name installed${NC}"
+    else
+        rm -f "$tmp"
+        echo -e "${RED}  Failed to download $name${NC}"
+        echo -e "${YELLOW}  Install manually: Processing → Sketch → Import Library → Manage Libraries → '$name'${NC}"
     fi
 }
 
