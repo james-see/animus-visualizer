@@ -5,6 +5,19 @@ export default defineConfig({
   base: '/animus-visualizer/',
   outDir: '../docs',
   build: {
-    assets: '_astro'
+    assets: '_astro',
+    inlineStylesheets: 'never'
+  },
+  vite: {
+    build: {
+      assetsInlineLimit: 0,
+      rollupOptions: {
+        output: {
+          entryFileNames: '_astro/[name].[hash].js',
+          chunkFileNames: '_astro/[name].[hash].js',
+          assetFileNames: '_astro/[name].[hash][extname]'
+        }
+      }
+    }
   }
 });
