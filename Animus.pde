@@ -350,7 +350,7 @@ void guiSetup(ControlFont font){
     buttons[11] = ring = cp5.addCheckBox("ring").addItem("Ring", 0);
     buttonLabels[11] = cp5.addTextlabel("Mode").setText("Mode");
     buttons[12] = fluid = cp5.addCheckBox("fluid").addItem("Fluid", 0);
-    buttonLabels[12] = cp5.addTextlabel("Sensitivity").setText("Mic Sensitivity");
+    buttonLabels[12] = cp5.addTextlabel("Sensitivity").setText("Sensitivity");
     buttons[13] = droplet = cp5.addCheckBox("droplet").addItem("Droplet", 0);
     buttonLabels[13] = cp5.addTextlabel("name").setText(visualizers[select].name);
     
